@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 
 const LandCard = ({ lands, onLandClick }) => {
   const navigate = useNavigate();
-  // Construct the image path using the current image number
   console.log("bduhsyw", lands);
   let counter = 0;
   const incrementCount = () => {
@@ -19,7 +18,7 @@ const LandCard = ({ lands, onLandClick }) => {
           {lands.map((land) => (
 
             <div
-              key={land.id}
+              key={land.Title}
               className="max-w-sm bg-white rounded-lg border border-gray-200 shadow-md overflow-hidden hover:shadow-2xl transition-shadow duration-300"
             >
               {incrementCount()}
