@@ -1,5 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
+import DropdownMenu from "./components/SearchComponent";
+import MapComponent from "./components/MapComponent";
+import DetailsComponent from "./components/DetailsComponent";
 import axios from 'axios'; // Import Axios
+
+import styled from "styled-components";
 
 const DigitalStorage = () => {
   const [selectedMarker, setSelectedMarker] = React.useState(null);
@@ -12,7 +17,7 @@ const DigitalStorage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get("");
+        const response = await axios.get("http://127.0.0.1:8000/api/storage");
         setMarkersData(response.data);
         setFilteredMarkers(response.data);
         setLoading(false);
@@ -63,15 +68,18 @@ const DigitalStorage = () => {
         {/* Sidebar for Filters */}
         <div className="w-1/4 xl:w-1/5 bg-sky-200 p-4 border-r border-gray-200">
           <div className="flex items-center mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 110 2H4a1 1 0 01-1-1zm2 8a1 1 0 100 2h12a1 1 0 100-2H5zm3 7a1 1 0 001 1h4a1 1 0 100-2H9a1 1 0 00-1 1z" />
+            </svg>
             <h2 className="font-semibold text-lg">Filters</h2>
           </div>
           <DropdownMenu
             data={markersData}
-            fields={["city", "capacity"]}
+            fields={["city", "capacity", "crop_type"]}
             fieldNames={[
               { field: "city", name: "Select a City" },
               { field: "capacity", name: "Storage Capacity" },
+              { field: "crop_type", name: "Crop Storage Type" },
             ]}
             onFiltersChange={handleFiltersChange}
           />
