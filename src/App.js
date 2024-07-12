@@ -15,6 +15,7 @@ import LandPosting from "./components/LandPosting.js";
 import LandDetail from "./components/LandDetail.js";
 import AddLand from "./AddLand.js";
 import CropPredictionPage from "./components/CropPredictionPage.js";
+import LandApplications from "./components/LandApplications.js";
 
 const App = () => {
   const theme = {
@@ -49,7 +50,6 @@ const App = () => {
         <Router>
           <div className="app-container">
             <ThemeProvider theme={theme}>
-              {/* <GlobalStyle /> */}
               <main className="content">
                 <Routes>
                   {/* Common Routes */}
@@ -98,6 +98,13 @@ const App = () => {
                   <Route
                     path="/landposting"
                     element={<ProtectedRoute component={LandPosting} />}
+                  />
+                  <Route
+                    path="/landapplications"
+                    element={
+
+                        <ProtectedRoute component={LandApplications} />
+                    }
                   />
                 </Routes>
               </main>

@@ -5,16 +5,38 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const Header = () => {
+  const { currentDBUser } = useAuth();
   const [showHeader, setShowHeader] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [notificationCount, setNotificationCount] = useState(0); // State to manage notification count
 
   const navigate = useNavigate();
-
+  
   const storedDBData = JSON.parse(localStorage.getItem("storedDBData"));
   let isLandOwner = false;
   if (storedDBData) {
     isLandOwner = storedDBData.designation === "L";
   }
+
+  useEffect(() => {
+    const fetchApplications = async () => {
+      const response = await axios.get(
+        "http://127.0.0.1:8000/api/landapplications"
+      );
+      if (response.data && storedDBData) {
+        if (isLandOwner) {
+          const currentApplications = response.data.filter(
+            (application) => application.landowner === storedDBData.id
+          );
+          setNotificationCount(len(currentApplications));
+        }
+      } else {
+        setNotificationCount(0);
+      }
+    };
+
+    fetchApplications();
+  }, []);
 
   const navigationLinks = [
     { path: "/", title: "Home" },
@@ -38,6 +60,11 @@ const Header = () => {
     return () => window.removeEventListener("scroll", controlNavbar);
   }, [lastScrollY]);
 
+  const handleScroll = (anchor) => (e) => {
+    e.preventDefault();
+    document.querySelector(anchor).scrollIntoView({ behavior: "smooth" });
+  };
+
   const getActiveLinkStyles = ({ isActive }) =>
     isActive ? "text-teal-200" : "text-white hover:text-teal-200";
 
@@ -49,6 +76,7 @@ const Header = () => {
     >
       <NavLink to="/" className="flex items-center space-x-3">
         <img src="./images/logo1.webp" alt="FarmTech logo" className="h-12" />
+        {/* <img src="./images/logo.png" alt="FarmTech logo" className="h-12" /> */}
         <span className="text-xl font-bold">FARMTECH</span>
       </NavLink>
       <nav className="flex justify-center items-center gap-16 text-lg flex-1">
@@ -57,6 +85,17 @@ const Header = () => {
             {title}
           </NavLink>
         ))}
+        <NavLink
+          to="/landapplications"
+          className={`relative ${getActiveLinkStyles}`}
+        >
+          Applications
+          {notificationCount > 0 && (
+            <span className="absolute top-0 right-0 inline-flex items-center justify-center p-1 text-xs font-bold leading-none text-red-100 transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
+              {notificationCount}
+            </span>
+          )}
+        </NavLink>
         {isLandOwner && (
           <NavLink to="/landposting" className={getActiveLinkStyles}>
             Postings
@@ -65,6 +104,7 @@ const Header = () => {
         <NavLink to="/crop-recommendation" className={getActiveLinkStyles}>
           Crop Recommendation
         </NavLink>
+
       </nav>
       {!storedDBData && (
         <NavLink
