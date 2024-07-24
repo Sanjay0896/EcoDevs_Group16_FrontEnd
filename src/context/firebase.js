@@ -1,22 +1,18 @@
 import { initializeApp } from 'firebase/app';
-import { getAnalytics } from 'firebase/analytics';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-    apiKey: "AIzaSyCD2EgyM_Rckze-XNFZ8txHEbIFmKi3sHY",
-    authDomain: "farmtech-171fb.firebaseapp.com",
-    projectId: "farmtech-171fb",
-    storageBucket: "farmtech-171fb.appspot.com",
-    messagingSenderId: "790800003002",
-    appId: "1:790800003002:web:84d96dae4733725de77783",
-    measurementId: "G-5N2LHNMX6M"
+  apiKey: "AIzaSyAji9-pq4YVsmTo0Aylhasz-1PX-vm7rho",
+  authDomain: "ecodevs-c6fd3.firebaseapp.com",
+  projectId: "ecodevs-c6fd3",
+  storageBucket: "ecodevs-c6fd3.appspot.com",
+  messagingSenderId: "235903549957",
+  appId: "1:235903549957:web:79fafb90161046d954526c",
+  measurementId: "G-5JZVFSSJZG"
   };
-  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-  const auth = getAuth(app); // Access auth service
-  const firestore = getFirestore(app); // Access firestore service
+  const auth = getAuth(app);
+  const firestore = getFirestore(app);
 
-// Now you can access auth and firestore
 export { auth, firestore };
