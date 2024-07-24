@@ -1,31 +1,71 @@
-// DetailsComponent.js
-import { React, useState } from 'react';
-import styled from 'styled-components';
+import { React, useState } from "react";
+import styled from "styled-components";
 import { Modal } from "flowbite-react";
+import StorageAgreementForm from "./StorageAgreementForm";
 import { Button } from "@material-tailwind/react";
+import PopUp from "./PopUp";
 
 function DetailsComponent({ marker }) {
-
-  const [openModal, setOpenModal] = useState(false); // State to control modal visibility
+  const [openModal, setOpenModal] = useState(false);
+  const [popUp, setPopUp] = useState({ isVisible: false, message: "" });
+  const showPopUp = (message) => {
+    setPopUp({ isVisible: true, message });
+  };
+  const closeModal = () => {
+    setOpenModal(false);
+    showPopUp("Storage Application Submitted Successfully!");
+  };
 
   return (
     <>
       <Wrapper>
         <div className="card">
-          <h2 className="title text-2xl"><strong>{marker.name}</strong></h2>
-          <p className="info"><strong>Street Address:</strong> {marker.street_address}</p>
-          <p className="info"><strong>City:</strong> {marker.city}, {marker.province}</p>
-          <p className="info"><strong>Storage Capacity:</strong> {marker.capacity} Cubic/Meters</p>
-          <p className="info"><strong>Storage Type:</strong> {marker.crop_type}</p>
-          <p className="info last"><strong>Minimum Renting Period:</strong> {marker.min_renting_period} Months</p>
+          <h2 className="title text-2xl">
+            <strong>{marker.name}</strong>
+          </h2>
+          <p className="info">
+            <strong>Street Address:</strong> {marker.street_address}
+          </p>
+          <p className="info">
+            <strong>City:</strong> {marker.city}, {marker.province}
+          </p>
+          <p className="info">
+            <strong>Storage Capacity:</strong> {marker.capacity} Cubic/Meters
+          </p>
+          <p className="info">
+            <strong>Storage Type:</strong> {marker.crop_type}
+          </p>
+          <p className="info last">
+            <strong>Minimum Renting Period:</strong> {marker.min_renting_period}{" "}
+            Months
+          </p>
           <div className="flex justify-end">
             <Button
-              className="openFormButton">
+              className="openFormButton"
+              onClick={() => setOpenModal(true)}
+            >
               Inquire Now
             </Button>
           </div>
         </div>
       </Wrapper>
+      {openModal && (
+        <Modal show={openModal} onClose={() => setOpenModal(false)} size="4xl">
+          <Modal.Header>
+            <h2 className="text-2xl font-semibold mb-5 text-gray-900 text-center">
+              Personal Information
+            </h2>
+          </Modal.Header>
+          <Modal.Body>
+            <StorageAgreementForm marker={marker} onSuccess={closeModal}/>
+          </Modal.Body>
+        </Modal>
+      )}
+      <PopUp
+        isVisible={popUp.isVisible}
+        message={popUp.message}
+        onClose={() => setPopUp({ isVisible: false, message: "" })}
+      />
     </>
   );
 }
@@ -78,6 +118,5 @@ const Wrapper = styled.section`
   }
 }
 `;
-
 
 export default DetailsComponent;
