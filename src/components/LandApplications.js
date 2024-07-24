@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
-import LandCard from "./LandCard";
+import axios from "axios"; 
+import LandCard from "./LandCard"; 
+import LandAgreementForm from "./LandAgreementForm";
+import LandAgreementDetail from "./LandAgreementDetail";
 import { Button, Modal } from "flowbite-react";
 import LandApplicationsAccordion from "./LandApplicationsAccordion";
 import FilterTag from "./FilterTag";
+import FarmerProfile from "./FarmerProfile"; 
 import { useNavigate } from "react-router-dom";
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import LandAgreementForm from "./LandAgreementForm";
 import LandAgreementCard from "./LandAgreementCard";
-import FarmerProfile from "./FarmerProfile";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 
 const LandApplications = () => {
   const navigate = useNavigate();
@@ -22,12 +24,14 @@ const LandApplications = () => {
   const [activeTab, setActiveTab] = useState("lands");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [openModal, setOpenModal] = useState(false);
+  const [openModalAgreement, setOpenModalAgreement] = useState(false);
   const [selectedLandDetails, setSelectedLandDetails] = useState(null);
   const [isTagVisible, setIsTagVisible] = useState(false);
-  const [showFarmerProfile, setShowFarmerProfile] = useState(false); // State to control FarmerProfile modal visibility
+  const [showFarmerProfile, setShowFarmerProfile] = useState(false);
   const [selectedFarmerId, setSelectedFarmerId] = useState(null);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [pendingApplicationId, setPendingApplicationId] = useState(null);
+  const [selectedLandAgreement, setSelectedLandAgreement] = useState(null);
 
   const promptIgnoreConfirmation = (appId) => {
     setPendingApplicationId(appId);
@@ -98,8 +102,11 @@ const LandApplications = () => {
     };
 
     const fetchAgreements = async () => {
-      const response = await axios.get("http://127.0.0.1:8000/api/agreements");
+      const response = await axios.get(
+        "http://127.0.0.1:8000/api/agreements"
+      );
       if (response.data && storedUserData) {
+        console.log("Harsh", response.data);
         if (isLandOwner) {
           const currentAgreements = response.data.filter(
             (agreement) => agreement.landowner === storedUserData.id
@@ -122,7 +129,7 @@ const LandApplications = () => {
 
   useEffect(() => {
     const fetchLands = async () => {
-      setIsLoading(true); // Begin loading
+      setIsLoading(true);
 
       const response = await axios.get("http://127.0.0.1:8000/api/lands");
       if (response.data && storedUserData) {
@@ -134,21 +141,15 @@ const LandApplications = () => {
           console.log("fetched lands", storedUserData.user_name);
           setLands(filteredLands);
         } else {
-          // Get all land ids from land applications
           const landIdsInApplications = applications.map((app) => app.landid);
 
-          // Filter lands that are in land applications
           const filteredLands = response.data.filter((land) =>
             landIdsInApplications.includes(land.id)
           );
           setLands(filteredLands);
         }
 
-        // // Filter JSON B based on the farmer ID matching a variable called userId
-        // const filteredFarmerApplications = jsonDataB.filter(item => item.farmer === storedDBData.id);
-
-        // // Filter JSON A based on matching IDs from JSON B
-        // const filteredJsonA = jsonDataA.filter(itemA => jsonDataB.some(itemB => itemA.id === itemB.landid));
+      
       } else {
         setLands(response.data);
       }
@@ -196,7 +197,7 @@ const LandApplications = () => {
   const [farmerId, setFarmerId] = useState();
   const [landId, setLandId] = useState();
   const [landApplication, setLandApplication] = useState();
-  const [isLoading, setIsLoading] = useState(true); // Add a loading state
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchFormData = ({ appId, landowner, farmer, landid }) => {
     setLandOwnerId(landowner);
@@ -211,7 +212,7 @@ const LandApplications = () => {
 
     const land_address = lands
       .filter((land) => land.id === landid)
-      .map((land) => `${land.street_address},${land.city},${land.province}`);
+      .map((land) => ${land.street_address},${land.city},${land.province});
     setLandAddress(land_address);
   };
 
@@ -226,6 +227,13 @@ const LandApplications = () => {
     setSelectedLandId(land.id);
     setSelectedLandDetails(land);
     setIsTagVisible(true);
+    setOpenModal(true);
+  };
+
+  const handleLandAgreementClick = (landAgreement) => {
+    console.log("vatsal", landAgreement);
+    setOpenModalAgreement(true);
+    setSelectedLandAgreement(landAgreement);
   };
 
   const handleClear = () => {
@@ -237,17 +245,6 @@ const LandApplications = () => {
     setOpenModal(true);
   };
 
-  const updateLandApplicationStatus = async (appId, status) => {
-    try {
-      const response = await axios.put(
-        `http://127.0.0.1:8000/api/landapplications/${appId}/status`,
-        { status: status }
-      );
-      console.log(response.data);
-    } catch (error) {
-      console.error("error", error);
-    }
-  };
 
   const handleIgnore = (appId) => {
     console.log("Ignored application with ID:", appId);
@@ -255,7 +252,6 @@ const LandApplications = () => {
     const updatedFilteredApplications = filteredApplications.filter(
       (application) => application.id !== appId
     );
-    updateLandApplicationStatus(appId, "Rejected");
     setFilteredApplications(updatedFilteredApplications);
     setIsConfirmationOpen(false);
     showNotification("Application rejected.");
@@ -267,12 +263,12 @@ const LandApplications = () => {
 
   return (
     <div className="flex flex-col h-screen">
-      <header className="flex justify-between items-center text-lg font-semibold bg-gray-300 shadow-md">
+      <header className="flex justify-between items-center text-lg font-semibold bg-green-100 shadow-md">
         <button
           className={`flex-grow text-center py-2 rounded-t-lg transition-colors duration-300 ${
             activeTab === "applications"
-              ? "bg-gray-400 text-white"
-              : "text-gray-800 hover:bg-gray-200"
+              ? "bg-green-400 text-white"
+              : "text-green-800 hover:bg-green-200"
           }`}
           onClick={() => setActiveTab("applications")}
         >
@@ -281,8 +277,8 @@ const LandApplications = () => {
         <button
           className={`flex-grow text-center py-2 rounded-t-lg transition-colors duration-300 ${
             activeTab === "agreements"
-              ? "bg-gray-400 text-white"
-              : "text-gray-800 hover:bg-gray-200"
+              ? "bg-green-400 text-white"
+              : "text-green-800 hover:bg-gree-200"
           }`}
           onClick={() => setActiveTab("agreements")}
         >
@@ -291,8 +287,8 @@ const LandApplications = () => {
         <button
           className={`flex-grow text-center py-2 rounded-t-lg transition-colors duration-300 ${
             activeTab === "chat"
-              ? "bg-gray-400 text-white"
-              : "text-gray-800 hover:bg-gray-200"
+              ? "bg-greem-400 text-gray"
+              : "text-green-800 hover:bg-green-200"
           }`}
           onClick={() => setActiveTab("chat")}
         >
@@ -333,8 +329,8 @@ const LandApplications = () => {
           <div>
             <div className="w-full" style={{ minHeight: "100vh" }}>
               <LandAgreementCard
-                lands={agreements}
-                onLandClick={handleLandClick}
+                landAgreements={agreements}
+                onLandAgreementClick={handleLandAgreementClick}
               />
             </div>
           </div>
@@ -342,7 +338,7 @@ const LandApplications = () => {
 
         {activeTab === "chat" && (
           <div>
-            
+           
           </div>
         )}
       </main>
@@ -375,6 +371,23 @@ const LandApplications = () => {
                 landApplication,
               }}
             />
+          </Modal.Body>
+        </Modal>
+      )}
+
+      {openModalAgreement && (
+        <Modal
+          show={openModalAgreement}
+          onClose={() => setOpenModalAgreement(false)}
+          size="4xl"
+        >
+          <Modal.Header>
+            <h2 className="text-2xl font-semibold mb-5 text-gray-900">
+              Land Agreement Detail
+            </h2>
+          </Modal.Header>
+          <Modal.Body>
+            <LandAgreementDetail agreement={selectedLandAgreement} />
           </Modal.Body>
         </Modal>
       )}
