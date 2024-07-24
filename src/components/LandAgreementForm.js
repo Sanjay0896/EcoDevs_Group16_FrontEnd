@@ -1,125 +1,225 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios"; 
-import LandCard from "./LandCard";
-import 'react-toastify/dist/ReactToastify.css';
+import React, { useState } from 'react';
+import { Button, Checkbox, Label, TextInput, Textarea, Select } from 'flowbite-react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
+const facilitiesOptions = [
+  'Housing',
+  'Irrigation capacity',
+  'Irrigation equipment',
+  'Greenhouse',
+  'Fencing',
+  'Agricultural machinery',
+  'Cold storage',
+  'Processing facilities',
+  'Other facilities',
+];
+
+const cropList = [
+  'Field Crops (grains or beans)',
+  'Flowers',
+  'Fruit/berries/grapes',
+  'Hay or forage crops',
+  'Herbs',
+  'Livestock',
+  'Seeds, seedlings or nursery stock',
+  'Vegetables',
+  'Other products',
+];
+
+function LandAgreementForm({preFormData}) {
+
+  console.log("Harsh data", preFormData);
+
+  const storedDBData = JSON.parse(localStorage.getItem('storedDBData'));
+
+  const { landOwnerId, farmerId, landId, landOwnerName, farmerName, landAddress } = preFormData;
+
+  const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({
+    landOwnerName: preFormData.landApplication.landowner_extended.user_name,
+    farmerName: preFormData.landApplication.farmer_extended.user_name,
+    landAddress: preFormData.landApplication.land_detail.street_address + ", " + preFormData.landApplication.land_detail.city + ", " + preFormData.landApplication.land_detail.province,
+    agreementDuration: '',
+    durationType: 'years',
+    decidedCrop: preFormData.landApplication.product_planning_to_produce,
+    facilitiesAndEquipment: preFormData.landApplication.facility_and_equipment_agreed_to,
+    agreementDescription: '',
+  });
 
 
-const LandApplications = () => {
-
-  const [lands, setLands] = useState([]);
-  const [applications, setApplications] = useState([]);
-  const [activeTab, setActiveTab] = useState("lands");
-  const storedDBData = JSON.parse(localStorage.getItem("storedDBData"));
-  let isLandOwner = false;
-  if (storedDBData) {
-    isLandOwner = storedDBData.designation === "L";
-  }
-
-  const storedUserData = JSON.parse(localStorage.getItem("storedDBData"));
-
-  useEffect(() => {
-    const fetchLands = async () => {
-      setIsLoading(true);
-
-      const response = await axios.get("http://127.0.0.1:8000/api/lands");
-      if (response.data && storedUserData) {
-        if (isLandOwner) {
-          const filteredLands = response.data.filter(
-            (land) => land.land_owner_name === storedUserData.user_name
-          );
-          console.log("fetched lands", response.data);
-          console.log("fetched lands", storedUserData.user_name);
-          setLands(filteredLands);
-        } else {
-          const landIdsInApplications = applications.map((app) => app.landid);
-
-          const filteredLands = response.data.filter((land) =>
-            landIdsInApplications.includes(land.id)
-          );
-          setLands(filteredLands);
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    if (name === 'decidedCrop') {
+      const selectedOptionIndex = cropList.map((selectedValue, index) => {
+        if (value === selectedValue) {
+          return index;
         }
-      } else {
-        setLands(response.data);
-      }
-      setIsLoading(false);
-    };
-    fetchLands();
-  }, []);
+      });
+      setFormData({
+        ...formData,
+        product_planning_to_produce: [selectedOptionIndex],
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: type === 'checkbox' ? checked : value,
+      });
+    }
+  };
 
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    setActiveTab("applications");
-  }, []);
-
-  
-  const handleLandClick = (land) => {
+  const handleInputChangeProduct = (e) => {
+    const { name, value, type, checked } = e.target;
 
   };
 
-  return (
-    <div className="flex flex-col h-screen">
-      <header className="flex justify-between items-center text-lg font-semibold bg-gray-300 shadow-md">
-        <button
-          className={`flex-grow text-center py-2 rounded-t-lg transition-colors duration-300 ${activeTab === "applications"
-            ? "bg-gray-400 text-white"
-            : "text-gray-800 hover:bg-gray-200"
-            }`}
-          onClick={() => setActiveTab("applications")}
-        >
-          Applications
-        </button>
-        <button
-          className={`flex-grow text-center py-2 rounded-t-lg transition-colors duration-300 ${activeTab === "agreements"
-            ? "bg-gray-400 text-white"
-            : "text-gray-800 hover:bg-gray-200"
-            }`}
-          onClick={() => setActiveTab("agreements")}
-        >
-          Agreements
-        </button>
-        <button
-          className={`flex-grow text-center py-2 rounded-t-lg transition-colors duration-300 ${activeTab === "chat"
-            ? "bg-gray-400 text-white"
-            : "text-gray-800 hover:bg-gray-200"
-            }`}
-          onClick={() => setActiveTab("chat")}
-        >
-          Chat
-        </button>
-      </header>
+  const updateLandApplicationStatus = async (appId, status) => {
+    try {
+      const response = await axios.put(
+        `http://127.0.0.1:8000/api/landapplications/${appId}/status`,
+        { status: status }
+      );
+      console.log(response.data);
+    } catch (error) {
+      console.error("error", error);
+    }
+  };
 
-      <main className="flex-grow overflow-y-auto">
-       
-        {activeTab === "applications" && (
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const apiPayload = {
+      landowner: preFormData.landApplication.landowner_extended.id,
+      farmer: preFormData.landApplication.farmer_extended.id,
+      landid: preFormData.landApplication.land_detail.id,
+      agreement_duration: formData.agreementDuration + ' ' + formData.durationType,
+      product_planning_to_produce: [1],
+      facility_and_equipment_agreed_to: formData.facilitiesAndEquipment,
+      agreement_description: formData.agreementDescription,
+    };
+
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/api/agreements", apiPayload);
+      updateLandApplicationStatus(preFormData.landApplication.id, "Accepted");
+      // console.log(response.data);
+      alert('Agreement Submitted Successfully!');
+      navigate('/landapplications')
+
+    } catch (error) {
+      console.error('Failed to submit agreement:', error);
+      alert('Failed to submit agreement. Please try again.');
+    }
+  };
+
+  return (
+    <div className="flex justify-center items-center p-4">
+      <div className="w-full max-w-4xl mx-auto bg-white rounded-lg shadow p-8">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <div className="flex flex-row">
-              <div className="w-3/4 p-4">
-                {isLoading ? (
-                  <div>Loading lands...</div>
-                ) : (
-                  <LandCard lands={lands} onLandClick={handleLandClick} />
-                )}
-              </div>
+            <Label htmlFor="landOwnerName">Land Owner Name</Label>
+            <TextInput
+              id="landOwnerName"
+              name="landOwnerName"
+              value={formData.landOwnerName}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="farmerName">Farmer Name</Label>
+            <TextInput
+              id="farmerName"
+              name="farmerName"
+              value={formData.farmerName}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="landAddress">Land Address</Label>
+            <TextInput
+              id="landAddress"
+              name="landAddress"
+              value={formData.landAddress}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+
+          <div className="flex gap-4 items-center">
+            <Label htmlFor="agreementDuration">Agreement Duration</Label>
+            <TextInput
+              id="agreementDuration"
+              name="agreementDuration"
+              type="number"
+              min="1"
+              value={formData.agreementDuration}
+              onChange={handleInputChange}
+              required
+            />
+            <div className="flex gap-2 items-center">
+              <Checkbox
+                id="years"
+                name="durationType"
+                value="years"
+                checked={formData.durationType === 'years'}
+                onChange={handleInputChange}
+              />
+              <Label htmlFor="years">Years</Label>
+            </div>
+            <div className="flex gap-2 items-center">
+              <Checkbox
+                id="months"
+                name="durationType"
+                value="months"
+                checked={formData.durationType === 'months'}
+                onChange={handleInputChange}
+              />
+              <Label htmlFor="months">Months</Label>
             </div>
           </div>
-        )}
 
-        {activeTab === "agreements" && (
           <div>
-          
+            <Label htmlFor="decidedCrop">Decided Crop</Label>
+            <Select id="decidedCrop" name="decidedCrop" onChange={handleInputChange} required>
+              <option>Select Decided Crop</option>
+              {cropList.map((option) => (
+                <option>{option}</option>
+              ))}
+            </Select>
           </div>
-        )}
 
-        {activeTab === "chat" && (
           <div>
-
+            <Label htmlFor="facilitiesAndEquipment">Facilities and Equipment</Label>
+            <Select id="facilitiesAndEquipment" name="facilitiesAndEquipment" value={formData.facilitiesAndEquipment} onChange={handleInputChange} required>
+              <option>Select Facilities/Equipment</option>
+              {facilitiesOptions.map((option) => (
+                <option>{option}</option>
+              ))}
+            </Select>
           </div>
-        )}
-      </main>
 
+          <div>
+            <Label htmlFor="agreementDescription">Agreement Description</Label>
+            <Textarea
+              id="agreementDescription"
+              name="agreementDescription"
+              value={formData.agreementDescription}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+
+          <Button type="submit">
+            Submit Agreement
+          </Button>
+        </form>
+      </div>
     </div>
   );
-};
+}
 
-export default LandApplications;
+export default LandAgreementForm;
